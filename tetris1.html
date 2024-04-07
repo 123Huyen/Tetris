@@ -1,0 +1,442 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+    <title>TETRIS</title>
+    <style>
+        canvas {
+            border: 2px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>TETRIS</h1>
+
+    <canvas id="GameCanvas" width="600px" height="600px"></canvas>
+    <script type="text/javascript">
+
+let canvas = document.getElementById("GameCanvas");
+let context = canvas.getContext("2d");
+
+const canvasLeft = 50;
+const canvasTop = 30;
+
+//四角を定義
+const column = 12;
+const row = 22;
+const sq = squareSize = 30;
+
+////canvas を設定
+const gridWidth = column * sq;
+const gridHeight = row * sq;
+const vacant = "white"; //color of empty square
+
+//四角を描く
+function drawSquare(x,y,color) {
+    context.fillStyle = color;
+    context.fillRect(x*sq, y*sq, sq, sq);
+
+    context.lineWidth = 3;
+    context.strokeStyle = "black";
+    context.strokeRect(x*sq, y*sq, sq, sq);
+}
+let field = [
+    [1,1,1,1,0,0,0,0,1,1,1,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,0,0,0,0,0,0,0,0,0,0,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+//ボードを描く
+for(let r = 0; r< row; r++){
+    for (let c = 0; c< column; c++) {
+        field[r][c]= vacant;
+    }
+}
+function drawBoard() {
+    for(let r = 0; r< row; r++) {
+        for(let c=0; c<column; c++){
+            drawSquare(c,r,field[r][c]);
+        }
+    }
+}
+
+// テトリスの形
+const I = [
+	[
+		[0, 0, 0, 0],
+		[1, 1, 1, 1],
+		[0, 0, 0, 0],
+		[0, 0, 0, 0],
+	],
+	[
+		[0, 0, 1, 0],
+		[0, 0, 1, 0],
+		[0, 0, 1, 0],
+		[0, 0, 1, 0],
+	],
+	[
+		[0, 0, 0, 0],
+		[0, 0, 0, 0],
+		[1, 1, 1, 1],
+		[0, 0, 0, 0],
+	],
+	[
+		[0, 1, 0, 0],
+		[0, 1, 0, 0],
+		[0, 1, 0, 0],
+		[0, 1, 0, 0],
+	]
+];
+
+const J = [
+	[
+		[1, 0, 0],
+		[1, 1, 1],
+		[0, 0, 0]
+	],
+	[
+		[0, 1, 1],
+		[0, 1, 0],
+		[0, 1, 0]
+	],
+	[
+		[0, 0, 0],
+		[1, 1, 1],
+		[0, 0, 1]
+	],
+	[
+		[0, 1, 0],
+		[0, 1, 0],
+		[1, 1, 0]
+	]
+];
+
+const L = [
+	[
+		[0, 0, 1],
+		[1, 1, 1],
+		[0, 0, 0]
+	],
+	[
+		[0, 1, 0],
+		[0, 1, 0],
+		[0, 1, 1]
+	],
+	[
+		[0, 0, 0],
+		[1, 1, 1],
+		[1, 0, 0]
+	],
+	[
+		[1, 1, 0],
+		[0, 1, 0],
+		[0, 1, 0]
+	]
+];
+
+const O = [
+	[
+		[0, 0, 0, 0],
+		[0, 1, 1, 0],
+		[0, 1, 1, 0],
+		[0, 0, 0, 0],
+	]
+];
+
+const S = [
+	[
+		[0, 1, 1],
+		[1, 1, 0],
+		[0, 0, 0]
+	],
+	[
+		[0, 1, 0],
+		[0, 1, 1],
+		[0, 0, 1]
+	],
+	[
+		[0, 0, 0],
+		[0, 1, 1],
+		[1, 1, 0]
+	],
+	[
+		[1, 0, 0],
+		[1, 1, 0],
+		[0, 1, 0]
+	]
+];
+
+const T = [
+	[
+		[0, 1, 0],
+		[1, 1, 1],
+		[0, 0, 0]
+	],
+	[
+		[0, 1, 0],
+		[0, 1, 1],
+		[0, 1, 0]
+	],
+	[
+		[0, 0, 0],
+		[1, 1, 1],
+		[0, 1, 0]
+	],
+	[
+		[0, 1, 0],
+		[1, 1, 0],
+		[0, 1, 0]
+	]
+];
+
+const Z = [
+	[
+		[1, 1, 0],
+		[0, 1, 1],
+		[0, 0, 0]
+	],
+	[
+		[0, 0, 1],
+		[0, 1, 1],
+		[0, 1, 0]
+	],
+	[
+		[0, 0, 0],
+		[1, 1, 0],
+		[0, 1, 1]
+	],
+	[
+		[0, 1, 0],
+		[1, 1, 0],
+		[1, 0, 0]
+	]
+];
+//テトリスの色
+const Pieces = [
+    [Z, "red"],
+    [S, "green"],
+    [T, "yellow"],
+    [O, "blue"],
+    [L, "purple"],
+    [I, "cyan"],
+    [J,"orange"]
+];
+// create random piece
+function randomPiece(){
+    let ran = randomN= Math.floor(Math.random * Pieces.length); // 0 --> 6
+    return new Piece( Pieces[ran][0],Pieces[ran][1]);
+}
+let p = randomPiece();
+
+
+// テトリスを作り出す
+
+//テトリスを定義
+function Piece(tetro, color){
+    this.tetro = tetro;
+    this.color = color;
+
+    this.tetroN=0; // start at the first pattern
+    this.activeTetro=this.tetro[this.tetroN];
+    this.x = 4;
+    this.y = 0;
+}
+
+
+//ボードでテトリスを描く
+Piece.prototype.draw = function() {
+    for(let r = 0; r < this.activeTetro.length; r++) {
+        for(let c=0; c < this.activeTetro.length; c++){
+            //draw only occupied squares
+            if(this.activeTetro[r][c]) {
+                drawSquare(this.x+c ,this.y + r,this.color);
+
+            }
+        }
+    }
+}
+Piece.prototype.unDraw = function(){
+    this.fill = vacant;
+}
+
+
+//衝突を確認
+Piece.prototype.collision = function (x, y, Piece){
+    for(let r = 0; r < p.length; r++) {
+        for(let c=0; c < p.length; c++){
+            //if the square === 0, skip
+            if(!Piece[r][c]){
+                continue;
+            }        
+            //condinates of the piece after movement 
+            let newX = this.x + r + x;
+            let newY= this.y + c + y;
+            if (new X> 0 || newY>column ||newY>row){
+                return true;
+            }
+            if (newY < 0) {
+                continue;
+            }
+            if(field[newX][newY]!=vacant){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+Piece.prototype.lock = function (){
+    for(let r = 0; r < this.activeTetro.length; r++) {
+        for(let c=0; c < this.activeTetro.length; c++){
+            //draw only occupied squares
+            if(!this.activeTetro[r][c]) {
+                continue;
+            }
+            if(this.y + r < 0) {
+                alert("Game Over");
+                break;
+            }
+        }
+    }
+    
+
+}
+
+//下に移動させる
+Piece.prototype.moveDown=function(){
+    if(!this.collision()){
+        this.unDraw;
+        this.y++;
+        this.draw();
+    }else {
+        //lock the piece and create new piece
+        p = randomPiece();
+    }
+}
+
+//落下の速度
+let dropStart=Date.now();
+function drop() {
+    let now = Date.now();
+    let delta = now - dropStart;
+    if(delta >1000){
+        p.moveDown();
+        dropStart = Date.now();
+    }
+}
+const dropInterval = 1000;
+setInterval(drop,dropInterval);
+drop();
+
+    
+    
+
+//右へ移動
+Piece.prototype.moveRight=function(){
+    if(!this.collision(1,0,this.activeTetro)){
+        this.unDraw;
+        this.x++;
+        this.draw();
+    }
+}
+//左へ移動
+Piece.prototype.moveLeft=function(){
+    if(!this.collision(-1,0,this.activeTetro)){
+        this.unDraw;
+        this.x--;
+        this.draw();
+    }
+}
+//回転
+Piece.prototype.rotate=function(){
+    let nextPattern = this.tetro[(this.tetroN+1)% this.tetro.length];
+    let kick=0;
+
+    if (this.collision(0,0,nextPattern)){
+        if (this.x >column/2){
+            //it is the right wall
+            kick = -1; // move piece to the left
+        }else {
+            // it is the left wall
+            kick = 1; //move to the right
+        }
+    }
+    if(!this.collision(kick,0,nextPattern)){
+        this.unDraw;
+        this.x += kick;
+        this.tetroN = (this.tetroN+1)% this.tetro.length; 
+        this.activeTetro = this.tetro[this.tetroN];
+        this.draw();
+    }
+}
+//
+
+
+//コントロール　key を追加
+document.addEventListener("keydown", onKeyDown);
+
+function onKeyDown (event) {
+    switch (event.keyCode) {
+        case 37: //left arrow
+            p.moveLeft();
+            break;
+        case 39: //right arrow
+            p.moveRight();
+            break;
+        case 38:
+            p.rotate();
+            break;
+        case 40: //down arrow
+            p.moveDown();
+            break;
+    }
+}
+
+
+
+
+
+
+	//描画処理関数
+function onDraw() {
+		
+		drawBoard();
+        p.draw();
+        drop();
+       
+        
+		
+		
+}
+        //メインループ関数
+function loop(timestamp) {
+	onDraw()
+  
+	window.requestAnimationFrame(loop)
+}
+	//メインループ開始
+	window.requestAnimationFrame(loop)
+    </script>
+</body>
+
+</html>
